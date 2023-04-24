@@ -1,18 +1,18 @@
 module Hazard(
     // RAW register hazard
-    wire input RegWrite_MEM, RegWrite_WB,
-    wire input[4:0] registerNumber1_EX,
-    wire input[4:0] registerNumber2_EX,
-    wire input[4:0] rdn_MEM,
-    wire input[4:0] rdn_WB,
+    input RegWrite_MEM, RegWrite_WB,
+    input[4:0] registerNumber1_EX,
+    input[4:0] registerNumber2_EX,
+    input[4:0] rdn_MEM,
+    input[4:0] rdn_WB,
     //   10 - forward from MEM
     //   01 - forward from WB
-    wire output logic[1:0] ForwardSrc1_EX, ForwardSrc2_EX,
+    output logic[1:0] ForwardSrc1_EX, ForwardSrc2_EX,
 
     // Data hazard with stall
-    wire input MemToReg_EX,
-    wire input [4:0]rs1n_ID, rs2n_ID, rdn_EX,
-    wire output Flush_EX, Stall_ID, Stall_IF
+    input MemToReg_EX,
+    input [4:0]rs1n_ID, rs2n_ID, rdn_EX,
+    output Flush_EX, Stall_ID, Stall_IF
 
     // Branch control hazard
     

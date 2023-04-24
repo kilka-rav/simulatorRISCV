@@ -1,11 +1,11 @@
 module Simulator(
-    wire input clk,
-    wire input rst,
-
-    wire output Exception, valid_out,
-    wire output logic [31:0] pc_out, imm_out,
-    wire output logic [4:0] rs1n_out, rs2n_out, rdn_out
+    input clk,
+    input rst,
+    output Exception, valid_out,
+    output logic [31:0] pc_out, imm_out,
+    output logic [4:0] rs1n_out, rs2n_out, rdn_out
 );
+
 // hazard unit
 //=--------------------------------------------------------
 // RAW register hazard
@@ -51,7 +51,7 @@ Memory #(.N(17), .DW(32)) imem(clk, pc_IF >> 2, 3'b010 /*32w*/, 0/*we*/, 0, inst
 wire [31:0] pc_ID, instr_ID;
 wire Enable_ID = !Stall_ID & !Exception_WB;
 wire rst_ID = rst | BranchIsTaken_EX;
-Pipeline #(.W(64)) fence_ID(clk, rst_ID, Enable_ID, 
+Pipeline #(.Width(64)) fence_ID(clk, rst_ID, Enable_ID, 
 {pc_IF, instr_IF}, 
 {pc_ID, instr_ID}
 );
@@ -86,11 +86,11 @@ wire [1:0] ALUSrc2_EX;
 
 wire PipeRegRst_EX = rst | Flush_EX | BranchIsTaken_EX;
 wire PipeRegEn_EX = !Exception_WB;
-Pipeline #(.W(150)) fence_ex_vals(clk, PipeRegRst_EX, PipeRegEn_EX, 
+Pipeline #(.Width(150)) fence_ex_vals(clk, PipeRegRst_EX, PipeRegEn_EX, 
     {pc_ID, rs1_val_ID, rs2_val_ID, imm32_ID, rs1n_ID, rs2n_ID, rdn_ID, alu_op_ID, mem_width_ID}, 
     {pc_EX, rs1_val_EX, rs2_val_EX, imm32_EX, rs1n_EX, rs2n_EX, rdn_EX, alu_op_EX, mem_width_EX}
 );
-Pipeline #(.W(13)) fence_ex_flags(clk, PipeRegRst_EX, PipeRegEn_EX,
+Pipeline #(.Width(13)) fence_ex_flags(clk, PipeRegRst_EX, PipeRegEn_EX,
     {MemToReg_ID, MemWrite_ID, ALUSrc1_ID, ALUSrc2_ID, RegWrite_ID, Branch_ID, InvertBranchTriger_ID, Jump_ID, NextPC_ID, Exception_ID, valid_ID},
     {MemToReg_EX, MemWrite_EX, ALUSrc1_EX, ALUSrc2_EX, RegWrite_EX, Branch_EX, InvertBranchTriger_EX, Jump_EX, NextPC_EX, Exception_EX, valid_EX}
 );
@@ -115,17 +115,17 @@ wire [2:0] mem_width_MEM;
 wire MemToReg_MEM, MemWrite_MEM, Exception_MEM, valid_MEM;
 wire PipeRegRst_MEM = rst;
 wire PipeRegEn_MEM = !Exception_WB;
-Pipeline #(.W(96)) fence_mem_values(clk, PipeRegRst_MEM, PipeRegEn_MEM, 
+Pipeline #(.Width(96)) fence_mem_values(clk, PipeRegRst_MEM, PipeRegEn_MEM, 
 {pc_EX , ALUOut_EX , rs2_val_forwarded_EX}, 
 {pc_MEM, ALUOut_MEM, MemWriteData_MEM    }
 );
-Pipeline #(.W(13)) fence_mem_flags(clk, PipeRegRst_MEM, PipeRegEn_MEM,
+Pipeline #(.Width(13)) fence_mem_flags(clk, PipeRegRst_MEM, PipeRegEn_MEM,
 {mem_width_EX , MemToReg_EX , MemWrite_EX , RegWrite_EX , rdn_EX , Exception_EX , valid_EX },
 {mem_width_MEM, MemToReg_MEM, MemWrite_MEM, RegWrite_MEM, rdn_MEM, Exception_MEM, valid_MEM}
 );
 wire[31:0] imm32_MEM;
 wire [4:0] rs1n_MEM, rs2n_MEM;
-Pipeline #(.W(42)) debug_pipe_MEM(clk, PipeRegRst_MEM, PipeRegEn_MEM,
+Pipeline #(.Width(42)) debug_pipe_MEM(clk, PipeRegRst_MEM, PipeRegEn_MEM,
 {imm32_EX , rs1n_EX , rs2n_EX },
 {imm32_MEM, rs1n_MEM, rs2n_MEM}
 );
@@ -133,23 +133,23 @@ Pipeline #(.W(42)) debug_pipe_MEM(clk, PipeRegRst_MEM, PipeRegEn_MEM,
 // memory
 //=--------------------------------------------------------
 wire[31:0] ReadData_MEM;
-MEM #(.N(17), .DW(32)) dmem(clk, ALUOut_MEM >> 2 , mem_width_MEM, MemWrite_MEM, MemWriteData_MEM, ReadData_MEM);
+Memory #(.N(17), .DW(32)) dmem(clk, ALUOut_MEM >> 2 , mem_width_MEM, MemWrite_MEM, MemWriteData_MEM, ReadData_MEM);
 
 // MEM to WB pipe register
 wire[31:0] ReadData_WB, ALUOut_WB;
 wire MemToReg_WB, valid_WB;
 wire PipeRegRst_WB = rst;
 wire PipeRegEn_WB = !Exception_WB;
-Pipeline #(.W(64)) fence_wb_vals(clk, PipeRegRst_WB, PipeRegEn_WB, 
+Pipeline #(.Width(64)) fence_wb_vals(clk, PipeRegRst_WB, PipeRegEn_WB, 
 {ReadData_MEM, ALUOut_MEM}, 
 {ReadData_WB , ALUOut_WB });
-Pipeline #(.W(9)) fence_wb_flags(clk, PipeRegRst_WB, PipeRegEn_WB, 
+Pipeline #(.Width(9)) fence_wb_flags(clk, PipeRegRst_WB, PipeRegEn_WB, 
 {RegWrite_MEM, MemToReg_MEM, rdn_MEM, Exception_MEM, valid_MEM}, 
 {RegWrite_WB , MemToReg_WB , rdn_WB , Exception_WB , valid_WB });
 // debug info pipe
 wire[31:0] imm32_WB, pc_WB;
 wire [4:0] rs1n_WB, rs2n_WB;
-Pipeline #(.W(74)) debug_pipe_WB(clk, PipeRegRst_WB, PipeRegEn_WB,
+Pipeline #(.Width(74)) debug_pipe_WB(clk, PipeRegRst_WB, PipeRegEn_WB,
 {pc_MEM, imm32_MEM, rs1n_MEM, rs2n_MEM},
 {pc_WB , imm32_WB , rs1n_WB , rs2n_WB}
 );

@@ -14,16 +14,16 @@
 `define ALU_B   4'b11_11
 
 module Decoder (
-    wire input [31:0] instr,
-    wire output [4:0] rs1_id,
-    wire output [4:0] rs2_id,
-    wire output [4:0] rd_id,
-    wire output [31:0] imm32,
-    wire output [2:0] mem_width,
+    input [31:0] instr,
+    output [4:0] rs1_id,
+    output [4:0] rs2_id,
+    output [4:0] rd_id,
+    output [31:0] imm32,
+    output [2:0] mem_width,
 
     // control unit out
-    wire output logic [3:0] ALU_op,
-    wire output logic MemToReg, MemWrite,
+    output logic [3:0] ALU_op,
+    output logic MemToReg, MemWrite,
     // ALUSrc1:
     // 0 - rs1
     // 1 - pc
@@ -31,17 +31,17 @@ module Decoder (
     // 00 - rs2
     // 01 - imm
     // 11 - 4
-    wire output logic ALUSrc1, 
-    wire output logic [1:0] ALUSrc2,
-    wire output logic /*RegDst,*/ RegWrite,
-    wire output logic Branch, InvertBranchTriger,
-    wire output logic Jump,
+    output logic ALUSrc1, 
+    output logic [1:0] ALUSrc2,
+    output logic /*RegDst,*/ RegWrite,
+    output logic Branch, InvertBranchTriger,
+    output logic Jump,
     // TypeInstruction:
     // 00 - pc + 4
     // 01 - pc + imm
     // 11 - rs1 + imm
-    wire output logic [1:0] TypeInstruction,
-    wire output logic Exception = 0, valid
+    output logic [1:0] TypeInstruction,
+    output logic Exception = 0, valid
 );
 
 localparam [6:0]R_TYPE  = 7'b0110011,

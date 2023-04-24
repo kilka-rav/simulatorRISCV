@@ -15,10 +15,10 @@
 
 
 module ALU(
-  wire input [31:0] a,b,
-  wire input [3:0] ALUop,
-  wire output reg[31:0] ALUOut,
-  wire output reg zero
+  input [31:0] a, b,
+  input [3:0] ALUop,
+  output reg[31:0] ALUOut,
+  output reg zero
 );
 always @(*) begin 
   case (ALUop)

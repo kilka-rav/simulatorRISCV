@@ -1,10 +1,10 @@
 module Memory #(parameter N = 12, DW = 32) (
-    wire input clk, 
-    wire input [31:0] /* verilator lint_off UNUSED */ addr , 
-    wire input [2:0] width, 
-    wire input we,
-    wire input [31:0] write_data,
-    wire output [31:0] read_data
+    input clk, 
+    input [31:0] /* verilator lint_off UNUSED */ addr , 
+    input [2:0] width, 
+    input we,
+    input [31:0] write_data,
+    output [31:0] read_data
 );
 //assert property(addr >> N == 0);
 
@@ -25,7 +25,7 @@ begin
         mem_buff[addr][7:0] <= write_data[7:0];
         if (width[0:0]) begin
             mem_buff[addr][15:8] <= write_data[15:8];
-        end else if(width[1:1]) begin
+        end else if (width[1:1]) begin
             mem_buff[addr][31:8] <= write_data[31:8];
         end
     end

@@ -1,13 +1,13 @@
 module RegisterFile(
-    wire input clk,
-    wire input [4:0] registerNumber1,
-    wire input [4:0] registerNumber2,
-    wire input we,
-    wire input [4:0] writeIndex,
-    wire input [31:0] data,
+    input clk,
+    input [4:0] registerNumber1,
+    input [4:0] registerNumber2,
+    input we,
+    input [4:0] writeIndex,
+    input [31:0] data,
 
-    wire output [31:0] val1,
-    wire output [31:0] val2
+    output [31:0] val1,
+    output [31:0] val2
 );
 
 reg [31:0] registers [31:0] /*verilator public*/;

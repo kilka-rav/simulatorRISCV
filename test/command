@@ -1,0 +1,2 @@
+./riscv32-unknown-elf-gcc -march=rv32i -e main cycle.c -o cycle.out -O0
+gtkwave ./out.vcd
