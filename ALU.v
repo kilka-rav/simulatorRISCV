@@ -15,34 +15,35 @@
 
 
 module ALU(
-  input [31:0] a, b,
-  input [3:0] ALUop,
-  output reg[31:0] ALUOut,
+  input [31:0] SrcA,
+  input [31:0] SrcB,
+  input [3:0] ALUControl,
+  output reg[31:0] ALUResult,
   output reg zero
 );
 always @(*) begin 
-  case (ALUop)
-    `ALU_ADD: ALUOut=a+b;
-    `ALU_SUB: ALUOut=a-b;
-    `ALU_AND: ALUOut=a&b;
-    `ALU_OR: ALUOut=a|b;
-    `ALU_XOR: ALUOut=a^b;
+  case (ALUControl)
+    `ALU_ADD: ALUResult = SrcA + SrcB;
+    `ALU_SUB: ALUResult = SrcA - SrcB;
+    `ALU_AND: ALUResult = SrcA & SrcB;
+    `ALU_OR: ALUResult = SrcA | SrcB;
+    `ALU_XOR: ALUResult = SrcA ^ SrcB;
     //left shift logical
-    `ALU_SHL: ALUOut=a<<b[4:0];
+    `ALU_SHL: ALUResult= SrcA << SrcB[4:0];
     //right shift logical
-    `ALU_SHR: ALUOut=a>>b[4:0];
+    `ALU_SHR: ALUResult= SrcA >> SrcB[4:0];
     //arithmetic right shift
-    `ALU_SHA: ALUOut=$signed(a)>>>$signed(b[4:0]);
+    `ALU_SHA: ALUResult=$signed(SrcA)>>>$signed(SrcB[4:0]);
     //set less than
-    `ALU_SLT: ALUOut=$signed(a) < $signed(b)? 32'b1:32'b0;
+    `ALU_SLT: ALUResult=$signed(SrcA) < $signed(SrcB)? 32'b1:32'b0;
     //set less than unsigned
-    `ALU_SLTU: ALUOut=a < b ? 32'b1:32'b0;
-    `ALU_A: ALUOut = a;
-    `ALU_B: ALUOut = b;
+    `ALU_SLTU: ALUResult = SrcA < SrcB ? 32'b1:32'b0;
+    `ALU_A: ALUResult = SrcA;
+    `ALU_B: ALUResult = SrcB;
     //by default do nothing
     default: ;
    endcase 
-   zero = (ALUOut == 0);
+   zero = (ALUResult == 0);
    //over<=0;
 end
 endmodule

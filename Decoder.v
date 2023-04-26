@@ -228,12 +228,12 @@ always @(*) begin
             MemToReg = 0;
             MemWrite = 0;
             ALUSrc1 = 1; // pc
-            ALUSrc2 = 2'b10; // 4
+            ALUSrc2 = 2'b11; // 4
             Branch = 0;
             Jump = 1;
             RegWrite = 1;
             // next pc is rs1 + imm
-            TypeInstruction = 2'b10;
+            TypeInstruction = 2'b11;
             Exception = 0;
             valid = 1;
         end
@@ -241,7 +241,7 @@ always @(*) begin
             MemToReg = 0;
             MemWrite = 0;
             ALUSrc1 = 1; // pc
-            ALUSrc2 = 2'b10; // 4
+            ALUSrc2 = 2'b11; // 4
             Branch = 0;
             Jump = 1;
             RegWrite = 1;

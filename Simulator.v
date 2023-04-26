@@ -7,12 +7,10 @@ module Simulator(
 );
 
 // hazard unit
-//=--------------------------------------------------------
-// RAW register hazard
-//   inputs
+// RAW 
 wire RegWrite_MEM, RegWrite_WB;
 wire [4:0] rs1n_EX, rs2n_EX, rdn_MEM, rdn_WB;
-//   outputs
+
 wire [1:0] ForwardSrc1_EX, ForwardSrc2_EX;
 // Data hazard with stall
 //   inputs
@@ -34,8 +32,8 @@ MemToReg_EX, rs1n_ID, rs2n_ID, rdn_EX,
 Flush_EX, Stall_ID, Stall_IF
 );
 
-// instruction fetch
-//=--------------------------------------------------------
+// Fetch
+
 wire [31:0] pc_IF;
 wire [31:0] pc_EX;
 // signals from ex
@@ -56,8 +54,7 @@ Pipeline #(.Width(64)) fence_ID(clk, rst_ID, Enable_ID,
 {pc_ID, instr_ID}
 );
 
-// instruction decode
-//=--------------------------------------------------------
+// Decoder
 // signal from WB
 wire[31:0] Result_WB;
 // decoded info

@@ -1,6 +1,7 @@
 module Hazard(
     // RAW register hazard
-    input RegWrite_MEM, RegWrite_WB,
+    input RegWrite_MEM,
+    input RegWrite_WB,
     input[4:0] registerNumber1_EX,
     input[4:0] registerNumber2_EX,
     input[4:0] rdn_MEM,
@@ -11,7 +12,7 @@ module Hazard(
 
     // Data hazard with stall
     input MemToReg_EX,
-    input [4:0]rs1n_ID, rs2n_ID, rdn_EX,
+    input [4:0] rs1n_ID, rs2n_ID, rdn_EX,
     output Flush_EX, Stall_ID, Stall_IF
 
     // Branch control hazard
@@ -19,11 +20,9 @@ module Hazard(
 );
 // RAW register hazard
 //=--------------------------------------------------------
-assign ForwardSrc1_EX = {2{(registerNumber1_EX != 0)}}
-    & ((RegWrite_MEM & (rdn_MEM == registerNumber1_EX)) ? 2'b10 
+assign ForwardSrc1_EX = {2{(registerNumber1_EX != 0)}} & ((RegWrite_MEM & (rdn_MEM == registerNumber1_EX)) ? 2'b10 
     : ((RegWrite_WB & (rdn_WB == registerNumber1_EX)) ?  2'b01 : 2'b00 ));
-assign ForwardSrc2_EX = {2{(registerNumber2_EX != 0)}} 
-    & ((RegWrite_MEM & (rdn_MEM == registerNumber2_EX)) ? 2'b10 
+assign ForwardSrc2_EX = {2{(registerNumber2_EX != 0)}} & ((RegWrite_MEM & (rdn_MEM == registerNumber2_EX)) ? 2'b10 
     : ((RegWrite_WB & (rdn_WB == registerNumber2_EX)) ?  2'b01 : 2'b00 ));
 
 // Data hazard with stall
