@@ -29,7 +29,9 @@ RegWrite_MEM, RegWrite_WB, rs1n_EX, rs2n_EX, rdn_MEM, rdn_WB,
 ForwardSrc1_EX, ForwardSrc2_EX,
 
 MemToReg_EX, rs1n_ID, rs2n_ID, rdn_EX,
-Flush_EX, Stall_ID, Stall_IF
+Flush_EX, Stall_ID, Stall_IF,
+
+Jump_EX, Branch_EX, InvertBranchTriger_EX, ALUOut_EX, BranchIsTaken_EX
 );
 
 // Fetch
@@ -44,17 +46,19 @@ wire PCEn = !Stall_IF & !Exception_WB;
 PCCounter pc_module(clk, PCEn, TakenNextPC_EX, pc_EX, imm32_EX, rs1_val_EX, pc_IF);
 
 wire [31:0] instr_IF;
-Memory #(.N(17), .DW(32)) imem(clk, pc_IF >> 2, 3'b010 /*32w*/, 0/*we*/, 0, instr_IF);
+
+MemoryInstruction #(.N(17), .DW(32)) imem(clk, pc_IF >> 2, 3'b010 /*32w*/, 0/*we*/, 0, instr_IF);
 
 wire [31:0] pc_ID, instr_ID;
 wire Enable_ID = !Stall_ID & !Exception_WB;
-wire rst_ID = rst | BranchIsTaken_EX;
-Pipeline #(.Width(64)) fence_ID(clk, rst_ID, Enable_ID, 
+wire Flush_ID = rst | BranchIsTaken_EX;
+Pipeline #(.Width(64)) fence_ID(clk, Flush_ID, Enable_ID, 
 {pc_IF, instr_IF}, 
 {pc_ID, instr_ID}
 );
 
-// Decoder
+// instruction decode
+//=--------------------------------------------------------
 // signal from WB
 wire[31:0] Result_WB;
 // decoded info
@@ -103,8 +107,9 @@ wire[31:0] ALUSrc2_val_EX = (ALUSrc2_EX == 2'b00) ? rs2_val_forwarded_EX : ((ALU
 wire[31:0] ALUOut_EX;
 wire ALUZero_EX;
 ALU alu(ALUSrc1_val_EX, ALUSrc2_val_EX, alu_op_EX, ALUOut_EX, ALUZero_EX);
+
 // branch logic
-assign BranchIsTaken_EX = (Jump_EX) || (Branch_EX && (InvertBranchTriger_EX ^ (ALUOut_EX != 0)));
+//assign BranchIsTaken_EX = (Jump_EX) || (Branch_EX && (InvertBranchTriger_EX ^ (ALUOut_EX != 0)));
 
 // EX to MEM pipe register
 wire [31:0] pc_MEM, ALUOut_MEM, MemWriteData_MEM;
@@ -130,7 +135,8 @@ Pipeline #(.Width(42)) debug_pipe_MEM(clk, PipeRegRst_MEM, PipeRegEn_MEM,
 // memory
 //=--------------------------------------------------------
 wire[31:0] ReadData_MEM;
-Memory #(.N(17), .DW(32)) dmem(clk, ALUOut_MEM >> 2 , mem_width_MEM, MemWrite_MEM, MemWriteData_MEM, ReadData_MEM);
+MemoryData #(.N(17), .DW(32)) dmem(clk, ALUOut_MEM >> 2 , mem_width_MEM, MemWrite_MEM, MemWriteData_MEM, ReadData_MEM);
+
 
 // MEM to WB pipe register
 wire[31:0] ReadData_WB, ALUOut_WB;

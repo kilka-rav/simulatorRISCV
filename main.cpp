@@ -1,5 +1,6 @@
 #include "VSimulator.h"
-#include "VSimulator_Memory__N11.h"
+#include "VSimulator_MemoryInstruction__N11.h"
+#include "VSimulator_MemoryData__N11.h"
 #include "VSimulator_RegisterFile.h"
 #include "VSimulator_Simulator.h"
 #include "VSimulator_PCCounter.h"

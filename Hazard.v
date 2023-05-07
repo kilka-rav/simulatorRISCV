@@ -13,10 +13,14 @@ module Hazard(
     // Data hazard with stall
     input MemToReg_EX,
     input [4:0] rs1n_ID, rs2n_ID, rdn_EX,
-    output Flush_EX, Stall_ID, Stall_IF
+    output Flush_EX, Stall_ID, Stall_IF,
 
     // Branch control hazard
-    
+    input Jump_EX,
+    input Branch_EX,
+    input InvertBranchTriger_EX,
+    input [31:0] ALUOut_EX,
+    output BranchIsTaken_EX
 );
 // RAW register hazard
 //=--------------------------------------------------------
@@ -30,5 +34,7 @@ assign ForwardSrc2_EX = {2{(registerNumber2_EX != 0)}} & ((RegWrite_MEM & (rdn_M
 wire load_stall = MemToReg_EX & ((rs1n_ID == rdn_EX) || (rs2n_ID == rdn_EX));
 assign Flush_EX = load_stall, Stall_ID = load_stall, Stall_IF = load_stall;
 
+//Branch Control Hazard
 
+assign BranchIsTaken_EX = (Jump_EX) || (Branch_EX && (InvertBranchTriger_EX ^ (ALUOut_EX != 0)));
 endmodule

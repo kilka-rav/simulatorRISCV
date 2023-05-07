@@ -1,4 +1,4 @@
-module Memory #(parameter N = 12, DW = 32) (
+module MemoryData #(parameter N = 12, DW = 32) (
     input clk, 
     input [31:0] /* verilator lint_off UNUSED */ addr_A, 
     input [2:0] width, 
