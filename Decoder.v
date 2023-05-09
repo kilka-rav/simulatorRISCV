@@ -1,17 +1,3 @@
-// ALU operations
-//=--------------------------------------------------------
-`define ALU_ADD 4'b00_00
-`define ALU_SUB 4'b00_01
-`define ALU_AND 4'b01_00
-`define ALU_OR  4'b01_01
-`define ALU_XOR 4'b01_10
-`define ALU_SHL 4'b10_00
-`define ALU_SHR 4'b10_10
-`define ALU_SHA 4'b10_11
-`define ALU_SLT 4'b11_00
-`define ALU_SLTU 4'b11_01
-`define ALU_A   4'b01_11
-`define ALU_B   4'b11_11
 
 module Decoder (
     input [31:0] instr,
@@ -43,17 +29,6 @@ module Decoder (
     output logic [1:0] TypeInstruction,
     output logic Exception = 0, valid
 );
-
-localparam [6:0]R_TYPE  = 7'b0110011,
-                I_TYPE  = 7'b0010011,
-                STORE   = 7'b0100011,
-                LOAD    = 7'b0000011,
-                BRANCH  = 7'b1100011,
-                JALR    = 7'b1100111,
-                JAL     = 7'b1101111,
-                AUIPC   = 7'b0010111,
-                LUI     = 7'b0110111,
-                ZERO    = 7'b0000000; // empty state (after rst)
 
 wire [6:0] opcode;
 wire [6:0] funct7;

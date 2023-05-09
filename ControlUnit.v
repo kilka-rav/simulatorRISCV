@@ -1,18 +1,4 @@
-// ALU operations
-//=--------------------------------------------------------
-`define ALU_ADD 4'b00_00
-`define ALU_SUB 4'b00_01
-`define ALU_AND 4'b01_00
-`define ALU_OR  4'b01_01
-`define ALU_XOR 4'b01_10
-`define ALU_SHL 4'b10_00
-`define ALU_SHR 4'b10_10
-`define ALU_SHA 4'b10_11
-`define ALU_SLT 4'b11_00
-`define ALU_SLTU 4'b11_01
-`define ALU_A   4'b01_11
-`define ALU_B   4'b11_11
-
+`include "Ops.v"
 
 module ControlUnit(
     input [6:0] opcode,
@@ -30,20 +16,9 @@ module ControlUnit(
     output logic Exception, valid
     );
 
-localparam [6:0]R_TYPE  = 7'b0110011,
-                I_TYPE  = 7'b0010011,
-                STORE   = 7'b0100011,
-                LOAD    = 7'b0000011,
-                BRANCH  = 7'b1100011,
-                JALR    = 7'b1100111,
-                JAL     = 7'b1101111,
-                AUIPC   = 7'b0010111,
-                LUI     = 7'b0110111,
-                ZERO    = 7'b0000000; // empty state (after rst)
-
 always @(*) begin
     case(opcode)
-        R_TYPE: begin
+        `R_TYPE: begin
             MemToReg = 0;
             MemWrite = 0;
             ALUSrc1 = 0;
@@ -80,7 +55,7 @@ always @(*) begin
                 end 
             end 
         end
-        I_TYPE: begin
+        `I_TYPE: begin
             MemToReg = 0;
             MemWrite = 0;
             ALUSrc1 = 0;
@@ -113,7 +88,7 @@ always @(*) begin
                 ALU_op = `ALU_AND; //andi
             end
         end
-        STORE: begin
+        `STORE: begin
             MemToReg = 0;
             MemWrite = 1;
             ALUSrc1 = 0;
@@ -126,7 +101,7 @@ always @(*) begin
             Exception = 0;
             valid = 1;
         end
-        LOAD: begin
+        `LOAD: begin
             MemToReg = 1;
             MemWrite = 0;
             ALUSrc1 = 0;
@@ -139,7 +114,7 @@ always @(*) begin
             Exception = 0;
             valid = 1;
         end
-        BRANCH: begin
+        `BRANCH: begin
             MemToReg = 0;
             MemWrite = 0;
             ALUSrc1 = 0;
@@ -170,7 +145,7 @@ always @(*) begin
                 InvertBranchTriger = 1;
             end
         end
-        JALR: begin
+        `JALR: begin
             MemToReg = 0;
             MemWrite = 0;
             ALUSrc1 = 1; // pc
@@ -183,7 +158,7 @@ always @(*) begin
             Exception = 0;
             valid = 1;
         end
-        JAL: begin
+        `JAL: begin
             MemToReg = 0;
             MemWrite = 0;
             ALUSrc1 = 1; // pc
@@ -196,7 +171,7 @@ always @(*) begin
             Exception = 0;
             valid = 1;
         end
-        AUIPC: begin
+        `AUIPC: begin
             MemToReg = 0;
             MemWrite = 0;
             ALUSrc1 = 1; // pc
@@ -209,7 +184,7 @@ always @(*) begin
             Exception = 0;
             valid = 1;
         end
-        LUI: begin
+        `LUI: begin
             MemToReg = 0;
             MemWrite = 0;
             ALUSrc1 = 0;
@@ -222,7 +197,7 @@ always @(*) begin
             Exception = 0;
             valid = 1;
         end
-        ZERO: begin
+        `ZERO: begin
             MemToReg = 0;
             MemWrite = 0;
             ALUSrc1 = 1'bx;
