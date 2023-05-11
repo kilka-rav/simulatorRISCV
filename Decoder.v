@@ -27,7 +27,7 @@ module Decoder (
     // 01 - pc + imm
     // 11 - rs1 + imm
     output logic [1:0] TypeInstruction,
-    output logic Exception = 0, valid
+    output logic bit_exit = 0, valid
 );
 
 wire [6:0] opcode;
@@ -52,6 +52,6 @@ CalcImmediate immediateCount(instr, opcode, funct3, funct7, i_imm_32, s_imm_32, 
 
 // control unit
 //=--------------------------------------------------------
-ControlUnit control(opcode, funct3, funct7, ALU_op, MemToReg, MemWrite, ALUSrc1, ALUSrc2, RegWrite, Branch, InvertBranchTriger, Jump, TypeInstruction, Exception, valid);
+ControlUnit control(opcode, funct3, funct7, ALU_op, MemToReg, MemWrite, ALUSrc1, ALUSrc2, RegWrite, Branch, InvertBranchTriger, Jump, TypeInstruction, bit_exit, valid);
 
 endmodule

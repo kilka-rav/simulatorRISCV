@@ -1,52 +1,53 @@
 module Simulator(
     input clk,
     input rst,
-    output Exception, valid_out,
+    output bit_exit, valid_out,
     output logic [31:0] pc_out, imm_out,
-    output logic [4:0] rs1n_out, rs2n_out, rdn_out
+    output logic [4:0] rs1n_out, rs2n_out, rdn_out,
+    output RegWrite_out
 );
 
 //Wires
 //----------------------------------------------
 wire RegWrite_MEM, RegWrite_WB;
-wire [4:0] rs1n_EX, rs2n_EX, rdn_MEM, rdn_WB;
-wire [1:0] ForwardSrc1_EX, ForwardSrc2_EX;
-wire MemToReg_EX;
-wire [4:0] rs1n_ID, rs2n_ID, rdn_EX;
-wire Flush_EX, Stall_ID, Stall_IF;
+wire [4:0] rs1n_exec, rs2n_exec, rdn_MEM, rdn_WB;
+wire [1:0] ForwardSrc1_exec, ForwardSrc2_exec;
+wire MemToReg_exec;
+wire [4:0] rs1n_instrDecode, rs2n_instrDecode, rdn_exec;
+wire Flush_exec, Stall_instrDecode, Stall_instrFetch;
 // Branch control hazard
-wire BranchIsTaken_EX;
-// exception command (ecall, fence ...)
-wire Exception_WB;
-wire [31:0] pc_IF;
-wire [31:0] pc_EX;
-// signals from ex
-wire [31:0] imm32_EX, rs1_val_EX;
-wire [1:0] NextPC_EX;
-wire [31:0] pc_ID, instr_ID;
+wire BranchIsTaken_exec;
+// exception command (ecall, pipeReg ...)
+wire bit_exit_WB;
+wire [31:0] pc_instrFetch;
+wire [31:0] pc_exec;
+// signals from execution
+wire [31:0] imm32_exec, rs1_val_exec;
+wire [1:0] NextPC_exec;
+wire [31:0] pc_instrDecode, instr_instrDecode;
 // signal from WB
 wire[31:0] Result_WB;
 // decoded info
-wire [31:0] instr_IF;
-wire [4:0] rdn_ID;
-wire [31:0] rs1_val_ID, rs2_val_ID, imm32_ID;
-wire [3:0] alu_op_ID;
-wire [2:0] mem_width_ID;
-wire MemToReg_ID, MemWrite_ID, ALUSrc1_ID, RegWrite_ID, Branch_ID, InvertBranchTriger_ID, Jump_ID, Exception_ID, valid_ID;
-wire[1:0] ALUSrc2_ID, NextPC_ID;
+wire [31:0] instr_instrFetch;
+wire [4:0] rdn_instrDecode;
+wire [31:0] rs1_val_instrDecode, rs2_val_instrDecode, imm32_instrDecode;
+wire [3:0] alu_op_instrDecode;
+wire [2:0] mem_width_instrDecode;
+wire MemToReg_instrDecode, MemWrite_instrDecode, ALUSrc1_instrDecode, RegWrite_instrDecode, Branch_instrDecode, InvertBranchTriger_instrDecode, Jump_instrDecode, bit_exit_instrDecode, valid_instrDecode;
+wire[1:0] ALUSrc2_instrDecode, NextPC_instrDecode;
 // pipe register
-wire [2:0] mem_width_EX;
-wire [3:0] alu_op_EX;
-wire [31:0] rs2_val_EX;
-wire MemWrite_EX, ALUSrc1_EX, RegWrite_EX, Branch_EX, InvertBranchTriger_EX
-, Jump_EX, Exception_EX, valid_EX;
-wire [1:0] ALUSrc2_EX;
-wire[31:0] ALUOut_EX;
-wire ALUZero_EX;
+wire [2:0] mem_width_exec;
+wire [3:0] alu_op_exec;
+wire [31:0] rs2_val_exec;
+wire MemWrite_exec, ALUSrc1_exec, RegWrite_exec, Branch_exec, InvertBranchTriger_exec
+, Jump_exec, bit_exit_exec, valid_exec;
+wire [1:0] ALUSrc2_exec;
+wire[31:0] ALUOut_exec;
+wire ALUZero_exec;
 // EX to MEM pipe register
 wire [31:0] pc_MEM, ALUOut_MEM, MemWriteData_MEM;
 wire [2:0] mem_width_MEM;
-wire MemToReg_MEM, MemWrite_MEM, Exception_MEM, valid_MEM;
+wire MemToReg_MEM, MemWrite_MEM, bit_exit_MEM, valid_MEM;
 wire[31:0] imm32_MEM;
 wire [4:0] rs1n_MEM, rs2n_MEM;
 // MEM to WB pipe register
@@ -62,86 +63,86 @@ wire [4:0] rs1n_WB, rs2n_WB;
 // hazard unit
 // RAW 
 
-assign Exception = Exception_WB;
-
+assign bit_exit = bit_exit_WB;
+assign RegWrite_out = RegWrite_WB;
 Hazard hazard(
-RegWrite_MEM, RegWrite_WB, rs1n_EX, rs2n_EX, rdn_MEM, rdn_WB, 
-ForwardSrc1_EX, ForwardSrc2_EX,
+RegWrite_MEM, RegWrite_WB, rs1n_exec, rs2n_exec, rdn_MEM, rdn_WB, 
+ForwardSrc1_exec, ForwardSrc2_exec,
 
-MemToReg_EX, rs1n_ID, rs2n_ID, rdn_EX,
-Flush_EX, Stall_ID, Stall_IF,
+MemToReg_exec, rs1n_instrDecode, rs2n_instrDecode, rdn_exec,
+Flush_exec, Stall_instrDecode, Stall_instrFetch,
 
-Jump_EX, Branch_EX, InvertBranchTriger_EX, ALUOut_EX, BranchIsTaken_EX
+Jump_exec, Branch_exec, InvertBranchTriger_exec, ALUOut_exec, BranchIsTaken_exec
 );
 
 // Fetch
 
-wire [1:0] TakenNextPC_EX = (BranchIsTaken_EX) ? NextPC_EX : 2'b00;
-wire PCEn = !Stall_IF & !Exception_WB;
-PCCounter pc_module(clk, PCEn, TakenNextPC_EX, pc_EX, imm32_EX, rs1_val_EX, pc_IF);
+wire [1:0] TakenNextPC_exec = (BranchIsTaken_exec) ? NextPC_exec : 2'b00;
+wire PCEn = !Stall_instrFetch & !bit_exit_WB;
+PCCounter pc_module(clk, PCEn, TakenNextPC_exec, pc_exec, imm32_exec, rs1_val_exec, pc_instrFetch);
 
-MemoryInstruction #(.N(17), .DW(32)) imem(clk, pc_IF >> 2, 3'b010 /*32w*/, 0/*we*/, 0, instr_IF);
+MemoryInstruction #(.N(17), .DW(32)) imem(clk, pc_instrFetch >> 2, 3'b010 /*32w*/, 0/*we*/, 0, instr_instrFetch);
 
 
-wire Enable_ID = !Stall_ID & !Exception_WB;
-wire Flush_ID = rst | BranchIsTaken_EX;
-Pipeline #(.Width(64)) fence_ID(clk, Flush_ID, Enable_ID, 
-{pc_IF, instr_IF}, 
-{pc_ID, instr_ID}
+wire Enable_instrDecode = !Stall_instrDecode & !bit_exit_WB;
+wire Flush_instrDecode = rst | BranchIsTaken_exec;
+Pipeline #(.Width(64)) pipeReg_instrDecode(clk, Flush_instrDecode, Enable_instrDecode, 
+{pc_instrFetch, instr_instrFetch}, 
+{pc_instrDecode, instr_instrDecode}
 );
 
 // instruction decode
 //=--------------------------------------------------------
 
-Decoder decoder(instr_ID, 
-    rs1n_ID, rs2n_ID, rdn_ID, imm32_ID, // decoded instruction
-    mem_width_ID ,alu_op_ID, 
-    MemToReg_ID, MemWrite_ID, ALUSrc1_ID, ALUSrc2_ID, RegWrite_ID, Branch_ID, InvertBranchTriger_ID, Jump_ID, NextPC_ID,
-    Exception_ID, valid_ID
+Decoder decoder(instr_instrDecode, 
+    rs1n_instrDecode, rs2n_instrDecode, rdn_instrDecode, imm32_instrDecode, // decoded instruction
+    mem_width_instrDecode ,alu_op_instrDecode, 
+    MemToReg_instrDecode, MemWrite_instrDecode, ALUSrc1_instrDecode, ALUSrc2_instrDecode, RegWrite_instrDecode, Branch_instrDecode, InvertBranchTriger_instrDecode, Jump_instrDecode, NextPC_instrDecode,
+    bit_exit_instrDecode, valid_instrDecode
 );
-RegisterFile reg_file(clk, rs1n_ID, rs2n_ID, RegWrite_WB, rdn_WB, Result_WB, //input
-    rs1_val_ID, rs2_val_ID // out
+RegisterFile reg_file(clk, rs1n_instrDecode, rs2n_instrDecode, RegWrite_WB, rdn_WB, Result_WB, //input
+    rs1_val_instrDecode, rs2_val_instrDecode // out
 );
 
 
-wire PipeRegRst_EX = rst | Flush_EX | BranchIsTaken_EX;
-wire PipeRegEn_EX = !Exception_WB;
-Pipeline #(.Width(150)) fence_ex_vals(clk, PipeRegRst_EX, PipeRegEn_EX, 
-    {pc_ID, rs1_val_ID, rs2_val_ID, imm32_ID, rs1n_ID, rs2n_ID, rdn_ID, alu_op_ID, mem_width_ID}, 
-    {pc_EX, rs1_val_EX, rs2_val_EX, imm32_EX, rs1n_EX, rs2n_EX, rdn_EX, alu_op_EX, mem_width_EX}
+wire PipeRegRst_exec = rst | Flush_exec | BranchIsTaken_exec;
+wire PipeRegEn_exec = !bit_exit_WB;
+Pipeline #(.Width(150)) pipeReg_ex_vals(clk, PipeRegRst_exec, PipeRegEn_exec, 
+    {pc_instrDecode, rs1_val_instrDecode, rs2_val_instrDecode, imm32_instrDecode, rs1n_instrDecode, rs2n_instrDecode, rdn_instrDecode, alu_op_instrDecode, mem_width_instrDecode}, 
+    {pc_exec, rs1_val_exec, rs2_val_exec, imm32_exec, rs1n_exec, rs2n_exec, rdn_exec, alu_op_exec, mem_width_exec}
 );
-Pipeline #(.Width(13)) fence_ex_flags(clk, PipeRegRst_EX, PipeRegEn_EX,
-    {MemToReg_ID, MemWrite_ID, ALUSrc1_ID, ALUSrc2_ID, RegWrite_ID, Branch_ID, InvertBranchTriger_ID, Jump_ID, NextPC_ID, Exception_ID, valid_ID},
-    {MemToReg_EX, MemWrite_EX, ALUSrc1_EX, ALUSrc2_EX, RegWrite_EX, Branch_EX, InvertBranchTriger_EX, Jump_EX, NextPC_EX, Exception_EX, valid_EX}
+Pipeline #(.Width(13)) pipeReg_ex_flags(clk, PipeRegRst_exec, PipeRegEn_exec,
+    {MemToReg_instrDecode, MemWrite_instrDecode, ALUSrc1_instrDecode, ALUSrc2_instrDecode, RegWrite_instrDecode, Branch_instrDecode, InvertBranchTriger_instrDecode, Jump_instrDecode, NextPC_instrDecode, bit_exit_instrDecode, valid_instrDecode},
+    {MemToReg_exec, MemWrite_exec, ALUSrc1_exec, ALUSrc2_exec, RegWrite_exec, Branch_exec, InvertBranchTriger_exec, Jump_exec, NextPC_exec, bit_exit_exec, valid_exec}
 );
 
 // execution
 //=--------------------------------------------------------
 // forwarding registers
-wire [31:0] rs1_val_forwarded_EX = (ForwardSrc1_EX[1:1]) ? ALUOut_MEM : ((ForwardSrc1_EX[0:0]) ? Result_WB : rs1_val_EX);
-wire [31:0] rs2_val_forwarded_EX = (ForwardSrc2_EX[1:1]) ? ALUOut_MEM : ((ForwardSrc2_EX[0:0]) ? Result_WB : rs2_val_EX);
+wire [31:0] rs1_val_forwarded_exec = (ForwardSrc1_exec[1:1]) ? ALUOut_MEM : ((ForwardSrc1_exec[0:0]) ? Result_WB : rs1_val_exec);
+wire [31:0] rs2_val_forwarded_exec = (ForwardSrc2_exec[1:1]) ? ALUOut_MEM : ((ForwardSrc2_exec[0:0]) ? Result_WB : rs2_val_exec);
 
-wire[31:0] ALUSrc1_val_EX = (ALUSrc1_EX) ? pc_EX : rs1_val_forwarded_EX;
-wire[31:0] ALUSrc2_val_EX = (ALUSrc2_EX == 2'b00) ? rs2_val_forwarded_EX : ((ALUSrc2_EX == 2'b01) ? imm32_EX : 4); 
+wire[31:0] ALUSrc1_val_exec = (ALUSrc1_exec) ? pc_exec : rs1_val_forwarded_exec;
+wire[31:0] ALUSrc2_val_exec = (ALUSrc2_exec == 2'b00) ? rs2_val_forwarded_exec : ((ALUSrc2_exec == 2'b01) ? imm32_exec : 4); 
 
-ALU alu(ALUSrc1_val_EX, ALUSrc2_val_EX, alu_op_EX, ALUOut_EX, ALUZero_EX);
+ALU alu(ALUSrc1_val_exec, ALUSrc2_val_exec, alu_op_exec, ALUOut_exec, ALUZero_exec);
 
 // branch logic
-//assign BranchIsTaken_EX = (Jump_EX) || (Branch_EX && (InvertBranchTriger_EX ^ (ALUOut_EX != 0)));
+//assign BranchIsTaken_exec = (Jump_exec) || (Branch_exec && (InvertBranchTriger_exec ^ (ALUOut_exec != 0)));
 
 wire PipeRegRst_MEM = rst;
-wire PipeRegEn_MEM = !Exception_WB;
-Pipeline #(.Width(96)) fence_mem_values(clk, PipeRegRst_MEM, PipeRegEn_MEM, 
-{pc_EX , ALUOut_EX , rs2_val_forwarded_EX}, 
+wire PipeRegEn_MEM = !bit_exit_WB;
+Pipeline #(.Width(96)) pipeReg_mem_values(clk, PipeRegRst_MEM, PipeRegEn_MEM, 
+{pc_exec , ALUOut_exec , rs2_val_forwarded_exec}, 
 {pc_MEM, ALUOut_MEM, MemWriteData_MEM    }
 );
-Pipeline #(.Width(13)) fence_mem_flags(clk, PipeRegRst_MEM, PipeRegEn_MEM,
-{mem_width_EX , MemToReg_EX , MemWrite_EX , RegWrite_EX , rdn_EX , Exception_EX , valid_EX },
-{mem_width_MEM, MemToReg_MEM, MemWrite_MEM, RegWrite_MEM, rdn_MEM, Exception_MEM, valid_MEM}
+Pipeline #(.Width(13)) pipeReg_mem_flags(clk, PipeRegRst_MEM, PipeRegEn_MEM,
+{mem_width_exec , MemToReg_exec , MemWrite_exec , RegWrite_exec , rdn_exec , bit_exit_exec , valid_exec },
+{mem_width_MEM, MemToReg_MEM, MemWrite_MEM, RegWrite_MEM, rdn_MEM, bit_exit_MEM, valid_MEM}
 );
 
 Pipeline #(.Width(42)) debug_pipe_MEM(clk, PipeRegRst_MEM, PipeRegEn_MEM,
-{imm32_EX , rs1n_EX , rs2n_EX },
+{imm32_exec , rs1n_exec , rs2n_exec },
 {imm32_MEM, rs1n_MEM, rs2n_MEM}
 );
 
@@ -155,13 +156,13 @@ MemoryData #(.N(17), .DW(32)) dmem(clk, ALUOut_MEM >> 2 , mem_width_MEM, MemWrit
 wire[31:0] ReadData_WB, ALUOut_WB;
 wire MemToReg_WB, valid_WB;
 wire PipeRegRst_WB = rst;
-wire PipeRegEn_WB = !Exception_WB;
-Pipeline #(.Width(64)) fence_wb_vals(clk, PipeRegRst_WB, PipeRegEn_WB, 
+wire PipeRegEn_WB = !bit_exit_WB;
+Pipeline #(.Width(64)) pipeReg_wb_vals(clk, PipeRegRst_WB, PipeRegEn_WB, 
 {ReadData_MEM, ALUOut_MEM}, 
 {ReadData_WB , ALUOut_WB });
-Pipeline #(.Width(9)) fence_wb_flags(clk, PipeRegRst_WB, PipeRegEn_WB, 
-{RegWrite_MEM, MemToReg_MEM, rdn_MEM, Exception_MEM, valid_MEM}, 
-{RegWrite_WB , MemToReg_WB , rdn_WB , Exception_WB , valid_WB });
+Pipeline #(.Width(9)) pipeReg_wb_flags(clk, PipeRegRst_WB, PipeRegEn_WB, 
+{RegWrite_MEM, MemToReg_MEM, rdn_MEM, bit_exit_MEM, valid_MEM}, 
+{RegWrite_WB , MemToReg_WB , rdn_WB , bit_exit_WB , valid_WB });
 
 Pipeline #(.Width(74)) debug_pipe_WB(clk, PipeRegRst_WB, PipeRegEn_WB,
 {pc_MEM, imm32_MEM, rs1n_MEM, rs2n_MEM},

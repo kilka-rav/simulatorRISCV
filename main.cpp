@@ -53,13 +53,15 @@ int main(int argc, char **argv) {
   bool is_trace = false;
   int num_arguments = check_arguments(argc);
   if ( num_arguments == 0 ) {
+    std::cout << "Error in args" << std::endl;
     return -1;
   }
   path_to_exec = std::string(argv[1]);
   if ( num_arguments > 1) {
     is_trace = true;
   }
-
+  int inst_counter = 0;
+  int tackt = 0;
   auto top_module = std::make_unique<VSimulator>();
 
   Verilated::traceEverOn(true);
@@ -100,26 +102,43 @@ int main(int argc, char **argv) {
   while (!Verilated::gotFinish()) {
     vtime += 1;
     if (vtime % 8 == 0) {
-      clock ^= 1;
-      if (is_trace && !clock && top_module->valid_out) {
-        std::cout << "*********************************************************"
+      if (!clock && top_module->valid_out) {
+      //clock ^= 1;
+        if (is_trace && (std::strcmp(argv[2], "--trace") == 0)) {
+          std::cout << "*********************************************************"
                      "**********************"
                   << std::endl;
-        std::cout << std::hex << "0x" << (unsigned)top_module->pc_out << ": "
+          std::cout << std::hex << "0x" << (unsigned)top_module->pc_out << ": "
                   << "CMD" << std::dec << " rd = " << (int)top_module->rdn_out
                   << ", rs1 = " << (int)top_module->rs1n_out
                   << ", rs2 = " << (int)top_module->rs2n_out << std::hex
                   << ", imm = 0x" << top_module->imm_out << std::dec
                   << std::endl;
 
-        RegfileStr(top_module->Simulator->reg_file->registers);
+          RegfileStr(top_module->Simulator->reg_file->registers);
+        } else if (is_trace && (std::strcmp(argv[2], "--traceInstr") == 0)) {
+          std::cout << "***********************************\n";
+            std::cout << "TAKT: " << std::dec << tackt << std::endl;
+            std::cout << "NUM: " << std::dec << inst_counter++ << std::endl;
+            std::cout << "PC : "
+                      << "0x" << std::hex << (unsigned)top_module->pc_out
+                      << std::endl;
+            if (top_module->RegWrite_out && top_module->rdn_out != 0) {
+              std::cout
+                << "X" << std::dec << (int)top_module->rdn_out << " = 0x"
+                << std::hex
+                << top_module->Simulator->reg_file->registers[top_module->rdn_out]
+                << std::endl;
+            }
+        }
+      } 
+      if (top_module->bit_exit & (top_module->clk == 0)) {
+        std::cout << "Success!" << std::endl;
+        break;
       }
+      clock ^= 1;
+      tackt += clock;
     }
-    if (top_module->Exception & (top_module->clk == 0)) {
-      std::cout << "Success!" << std::endl;
-      break;
-    }
-
     top_module->clk = clock;
     top_module->eval();
     vcd->dump(vtime);

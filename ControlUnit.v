@@ -13,7 +13,7 @@ module ControlUnit(
     output logic Branch, InvertBranchTriger,
     output logic Jump,
     output logic [1:0] TypeInstruction,
-    output logic Exception, valid
+    output logic bit_exit, valid
     );
 
 always @(*) begin
@@ -27,7 +27,7 @@ always @(*) begin
             Jump = 0;
             RegWrite = 1;
             TypeInstruction = 2'b00; // pc + 4
-            Exception = 0;
+            bit_exit = 0;
             valid = 1;
             if (funct3 == 3'b000) begin 
                 if (funct7 == 7'b0000000) begin 
@@ -64,7 +64,7 @@ always @(*) begin
             Jump = 0;
             RegWrite = 1;
             TypeInstruction = 2'b00; // pc + 4
-            Exception = 0;
+            bit_exit = 0;
             valid = 1;
             if (funct3 == 3'b000) begin
                 ALU_op = `ALU_ADD; //addi 
@@ -98,7 +98,7 @@ always @(*) begin
             RegWrite = 0;
             TypeInstruction = 2'b00; // pc + 4
             ALU_op = `ALU_ADD;
-            Exception = 0;
+            bit_exit = 0;
             valid = 1;
         end
         `LOAD: begin
@@ -111,7 +111,7 @@ always @(*) begin
             RegWrite = 1;
             TypeInstruction = 2'b00; // pc + 4
             ALU_op = `ALU_ADD;
-            Exception = 0;
+            bit_exit = 0;
             valid = 1;
         end
         `BRANCH: begin
@@ -123,7 +123,7 @@ always @(*) begin
             Jump = 0;
             RegWrite = 0;
             TypeInstruction = 2'b01; // pc + imm
-            Exception = 0;
+            bit_exit = 0;
             valid = 1;
             if (funct3 == 3'b000) begin 
                 ALU_op = `ALU_SUB; //beq
@@ -155,7 +155,7 @@ always @(*) begin
             RegWrite = 1;
             // next pc is rs1 + imm
             TypeInstruction = 2'b11;
-            Exception = 0;
+            bit_exit = 0;
             valid = 1;
         end
         `JAL: begin
@@ -168,7 +168,7 @@ always @(*) begin
             RegWrite = 1;
             // next pc is pc + imm
             TypeInstruction = 2'b01;
-            Exception = 0;
+            bit_exit = 0;
             valid = 1;
         end
         `AUIPC: begin
@@ -181,7 +181,7 @@ always @(*) begin
             Jump = 0;
             RegWrite = 1;
             TypeInstruction = 2'b00; // pc + 4
-            Exception = 0;
+            bit_exit = 0;
             valid = 1;
         end
         `LUI: begin
@@ -194,7 +194,7 @@ always @(*) begin
             Jump = 0;
             RegWrite = 1;
             TypeInstruction = 2'b00; // pc + 4
-            Exception = 0;
+            bit_exit = 0;
             valid = 1;
         end
         `ZERO: begin
@@ -206,11 +206,11 @@ always @(*) begin
             Jump = 0;
             RegWrite = 0;
             TypeInstruction = 2'b00; // pc + 4
-            Exception = 0;
+            bit_exit = 0;
             valid = 0;
         end
         default: begin 
-            Exception = 1;
+            bit_exit = 1;
             valid = 1; 
         end
     endcase
