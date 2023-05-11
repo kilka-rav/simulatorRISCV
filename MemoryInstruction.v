@@ -10,7 +10,6 @@ module MemoryInstruction #(parameter N = 12, DW = 32) (
 
 reg	[(DW-1):0]	mem_buff 	[0:((1<<N)-1)] /*verilator public*/;
 
-// is L*U?
 wire to_extend = ~width[2:2];
 
 wire [31:0]read_w = mem_buff[addr_A];

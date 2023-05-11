@@ -4,7 +4,8 @@ module Simulator(
     output bit_exit, valid_out,
     output logic [31:0] pc_out, imm_out,
     output logic [4:0] rs1n_out, rs2n_out, rdn_out,
-    output RegWrite_out
+    output RegWrite_out,
+    output [31:0] opcode_out
 );
 
 //Wires
@@ -174,6 +175,7 @@ assign rs1n_out = rs1n_WB;
 assign rs2n_out = rs2n_WB;
 assign rdn_out = rdn_WB;
 assign imm_out = imm32_WB;
+assign opcode_out = instr_instrDecode[31:0];
 assign valid_out = valid_WB;
 
 // write back

@@ -61,7 +61,7 @@ int main(int argc, char **argv) {
     is_trace = true;
   }
   int inst_counter = 0;
-  int tackt = 0;
+  int proccessorClock = 0;
   auto top_module = std::make_unique<VSimulator>();
 
   Verilated::traceEverOn(true);
@@ -108,6 +108,8 @@ int main(int argc, char **argv) {
           std::cout << "*********************************************************"
                      "**********************"
                   << std::endl;
+          std::cout << std::hex << "Opcode operation: 0x" << (unsigned)top_module->opcode_out << std::hex << std::endl;
+
           std::cout << std::hex << "0x" << (unsigned)top_module->pc_out << ": "
                   << "CMD" << std::dec << " rd = " << (int)top_module->rdn_out
                   << ", rs1 = " << (int)top_module->rs1n_out
@@ -118,7 +120,7 @@ int main(int argc, char **argv) {
           RegfileStr(top_module->Simulator->reg_file->registers);
         } else if (is_trace && (std::strcmp(argv[2], "--traceInstr") == 0)) {
           std::cout << "***********************************\n";
-            std::cout << "TAKT: " << std::dec << tackt << std::endl;
+            std::cout << "Proccesor clock: " << std::dec << proccessorClock << std::endl;
             std::cout << "NUM: " << std::dec << inst_counter++ << std::endl;
             std::cout << "PC : "
                       << "0x" << std::hex << (unsigned)top_module->pc_out
@@ -137,7 +139,7 @@ int main(int argc, char **argv) {
         break;
       }
       clock ^= 1;
-      tackt += clock;
+      proccessorClock += clock;
     }
     top_module->clk = clock;
     top_module->eval();

@@ -6,11 +6,9 @@ module MemoryData #(parameter N = 12, DW = 32) (
     input [31:0] WD,
     output [31:0] RD
 );
-//assert property(addr_A >> N == 0);
 
 reg	[(DW-1):0]	mem_buff 	[0:((1<<N)-1)] /*verilator public*/;
 
-// is L*U?
 wire to_extend = ~width[2:2];
 
 wire [31:0]read_b = { {24{to_extend && mem_buff[addr_A][7:7]}}, mem_buff[addr_A][7:0] };
